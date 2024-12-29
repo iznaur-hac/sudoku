@@ -1,0 +1,43 @@
+* {
+    font-family: "Rock Salt", sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+}
+
+#table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 6px solid purple;
+    margin-top: 100px;
+}
+
+#table:hover {
+    cursor: pointer;
+}
+
+td {
+    border: 3px solid purple;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+}
+
+
+.td-rigth {
+    border-right: 6px solid purple;
+}
+
+.td-bottom {
+    border-bottom: 6px solid purple;
+}
+
+.td-active {
+    background-color: rgb(189, 24, 189) !important;
+}
+
+.td-passive {
+    background-color: rgb(181, 80, 181);
+}
