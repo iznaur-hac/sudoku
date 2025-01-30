@@ -12,8 +12,44 @@
     <title>sudoku</title>
 </head>
 <body>
-    <table id="table">
-    </table>
+    <header class="header">
+        <h1>sudoku</h1>
+    </header>
+
+    <div class="sudoku-box container">
+
+        <button id="startGame">
+            начать игру
+        </button>
+
+
+        <div class="player-interface none">
+            <p id="attempts">попытки: <span></span></p>
+            <div class="player-interface__buttons">
+                <button data-value="1" class="player-interface__button">1</button>
+                <button data-value="2" class="player-interface__button">2</button>
+                <button data-value="3" class="player-interface__button">3</button>
+                <button data-value="4" class="player-interface__button">4</button>
+                <button data-value="5" class="player-interface__button">5</button>
+                <button data-value="6" class="player-interface__button">6</button>
+                <button data-value="7" class="player-interface__button">7</button>
+                <button data-value="8" class="player-interface__button">8</button>
+                <button data-value="9" class="player-interface__button">9</button>
+            </div>
+        </div>
+    </div>
+
+    <dialog id="modal-window">
+        <div class="modal-window__content">
+            <p>Игра окочена</p>
+            <span>вы допустили три ошибки и проиграли</span>
+            <form method="dialog" class="close-button">
+                <button type="submit">
+                    новая игра
+                </button>
+            </form>
+        </div>
+    </dialog>
 
     <script src="./script.js"></script>
 </body>

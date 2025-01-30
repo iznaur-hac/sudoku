@@ -1,62 +1,116 @@
-const matrix = [
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', '', ''], 
-].reduce((accum, item, index) => {
-    const quantityOfNumbers = getRandomInt(3, 7);
-    const indices = getRandomNumbers(0, 9).slice(0, quantityOfNumbers+1);
-    const randomNumbers = getRandomNumbers(1, 10).slice(0, quantityOfNumbers+1);
+const startGameBtn = document.getElementById('startGame');
 
+startGameBtn.addEventListener('click', startGame, {once: true});
 
+function startGame() {
+  startGameBtn.classList.add('none');
+  createTable();
+  document.querySelector('.player-interface').classList.remove('none');
 
-    for (let i = 0; i < quantityOfNumbers; i++) {
-        let before = [...item];
-        item[indices[i]] = randomNumbers[i];
-        checkComplianceWithTheRules(before, [...item])
+  const modalWindow = document.getElementById('modal-window');
+  const buttons = document.querySelector('.player-interface__buttons');
+  const attempts = document.getElementById('attempts').firstElementChild;
+  const table = document.getElementById('table');
+
+  const sudoku = createSudokuMatrix();
+  console.log(sudoku);
+
+  // const startingSudoku = sudoku;
+  const startingSudoku = sudoku.map(row => {
+    const quantityOfSpaces = getRandomInt(3, 6);
+    const indices = getRandomNumbers(0, 9).slice(0, quantityOfSpaces);
+
+    const newRow = [...row]
+
+    for (let index of indices) {
+      newRow[index] = '';
     }
 
-    accum.push(item);
-    return accum;
-}, []);
+    return newRow;
+  });
 
-const table = document.getElementById('table');
-table.addEventListener('click', clickHandler);
+  let activeTd;
+  let errors = 3;
 
-for (let i = 0; i < matrix.length; i++) {
-    let tr = document.createElement('tr');
-    let elems = [];
+  generateTable();
 
-    for (let j = 0; j < matrix.length; j++) {
-        let td = document.createElement('td');
-        td.innerHTML = matrix[i][j];
-        td.dataset.index = i*9 + j;
-        elems.push(td);
+  table.addEventListener('click', clickHandler);
+  startingTdInitialization();
+  buttons.addEventListener('click', setTdValue);
+
+  //---------------------------------------------------------------------------------------
+
+  attempts.innerHTML = errors;
+
+  function generateTable() {
+    for (let i = 0; i < startingSudoku.length; i++) {
+      let tr = document.createElement('tr');
+      let elems = [];
+    
+      for (let j = 0; j < startingSudoku.length; j++) {
+          let td = document.createElement('td');
+          td.innerHTML = startingSudoku[i][j];
+          if (startingSudoku[i][j]) {
+            td.dataset.changed = false;
+          } else {
+            td.dataset.changed = true;
+          }
+          td.dataset.index = i*9 + j;
+          elems.push(td);
+      }
+    
+      tr.append( ...elems );
+      table.append(tr);
     }
 
-    tr.append( ...elems );
-    table.append(tr);
-}
+    // styling
+    stylyBorder();
+  }
 
 
-// styling
-stylyBorder();
+  //----------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------
-
-function clickHandler(event) {
+  function clickHandler(event) {
     const elemsObject = getElementLines(event.target);
+    console.log("работает");
+
+    activeTd = event.target;
 
     // styling
     switchTdStyles(elemsObject);
-}
+  }
 
-function getElementLines(target) {
+  function startingTdInitialization() {
+    const event = new Event("click", {bubbles: true});
+    const firstTd = table.firstElementChild.firstElementChild;
+    firstTd.dispatchEvent(event);
+  }
+
+  function setTdValue(event) {
+    const button = event.target.closest('button');
+
+    if (JSON.parse(activeTd.dataset.changed)) {
+      const tdIndex = activeTd.dataset.index;
+      const btnValue = button.dataset.value;
+      
+      activeTd.innerHTML = button.dataset.value;
+      if (btnValue != sudoku[(tdIndex - (tdIndex%9)) / 9][tdIndex % 9]) {
+        attempts.innerHTML = --errors;
+        activeTd.classList.add('td-error');
+      } else {
+        activeTd.dataset.changed = false;
+        activeTd.classList.remove('td-error');
+      }
+
+      if (errors === 0) modalWindow.showModal();
+    }
+  }
+
+
+  //--------------------------------------------------------------------------------------------------------------------------
+
+
+  function getElementLines(target) {
     const index = +target.dataset.index + 1;
     const horizontalElems = [...target.parentElement.children];
 
@@ -92,30 +146,19 @@ function getElementLines(target) {
     cubeElems = [].concat(...cubeElems);
 
 
-    console.log(target)
-    console.log(verticalElems.map(elem => elem.innerHTML));
-    console.log(horizontalElems.map(elem => elem.innerHTML));
-    console.log(cubeElems.map(elem => elem.innerHTML));
+    // console.log(verticalElems.map(elem => elem.innerHTML));
+    // console.log(horizontalElems.map(elem => elem.innerHTML));
+    // console.log(cubeElems.map(elem => elem.innerHTML));
 
     return {
         target: target,
         elems: [...cubeElems, ...verticalElems, ...horizontalElems]
     };
-}
+  }
 
+  //--------------------------------------------------------------------------------------------------------------------------
 
-function getMatrixLines(target, arrIndex, itemIndex) {
-
-}
-
-
-function checkComplianceWithTheRules(beforeMake, afterMake) {
-    console.log([beforeMake, afterMake]);
-    
-}
-//--------------------------------------------------------------------------------------------------------------------------
-
-function getRandomNumbers(from, to) {
+  function getRandomNumbers(from, to) {
     const range = [...Array(to - from).keys()].map(v => v + from);
 
     for (let i = 1; i < range.length; ++i) {
@@ -124,18 +167,18 @@ function getRandomNumbers(from, to) {
     }
 
     return range;
-}
+  }
 
 
-function getRandomInt(min, max) {
+  function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); // Максимум не включается, минимум включается
-}
+  }
 
-//--------------------------------------------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------------------------------------------
 
-function stylyBorder() {
+  function stylyBorder() {
     for (let i = 0; i < 9; i++) {
         table.rows[i].children[2].classList.add("td-rigth");
     }
@@ -151,11 +194,76 @@ function stylyBorder() {
     for (let i = 0; i < 9; i++) {
         table.rows[5].children[i].classList.add("td-bottom");
     }
-}
+  }
 
-function switchTdStyles(obj) {
+  function switchTdStyles(obj) {
     document.querySelectorAll('td').forEach(item => item.classList.remove('td-passive', 'td-active'));
 
     obj.elems.forEach(item => item.classList.add('td-passive'));
     obj.target.classList.add('td-active');
+  }
+
+  //--------------------------------------------------------------------------------------------------------------------------
+
+  function createSudokuMatrix() {
+    const matrix = Array.from({length:9}, () => Array(9).fill(0));
+
+    function shuffleArray(array) {
+      let result = [...array];
+      for (let i = array.length - 1; i >= 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function isRight(matrix, row, colum, num) {
+      for (let x = 0; x < 9; x++) {
+        if (matrix[row][x] === num || matrix[x][colum] === num) {
+          return false;
+        }
+      }
+
+      const cubeRowStart = row - row % 3;
+      const cubeColumStart  = colum - colum % 3; 
+      
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (matrix[cubeRowStart + i][cubeColumStart + j] == num) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+  
+    function fillMatrix() {
+      const pattern = '0681594327597283416342671589934157268278936145156842973729318654813465792465729831';
+      const randomNums = shuffleArray([1,2,3,4,5,6,7,8,9]);
+      
+      let j = 0;
+      for (let i = 1; i < 82; i++) {
+
+        if (j % 9 === 0) j = 0;
+
+        if (i % 9 === 0) {
+          matrix[((i - 9) - i % 9) / 9][j] = randomNums[pattern.substr(i, 1) - 1];
+        } else {
+          matrix[(i - i % 9) / 9][j] = randomNums[pattern.substr(i, 1) - 1];
+        }
+
+        j++;
+      }
+    }
+
+    fillMatrix();
+    return matrix;
+  }
+
+  function createTable() {
+    const table = document.createElement('table');
+    table.id = "table";
+    document.querySelector(".sudoku-box").prepend(table);
+  }
 }
